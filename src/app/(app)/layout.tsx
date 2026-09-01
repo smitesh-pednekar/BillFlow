@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { SidebarNav, MobileTabBar, UserMenu } from "./nav";
+import { ToastProvider } from "@/components/ui/Toast";
 
 export default async function AppLayout({
   children,
@@ -12,6 +13,7 @@ export default async function AppLayout({
   if (!user) redirect("/login");
 
   return (
+    <ToastProvider>
     <div className="flex min-h-screen">
       {/* Fixed rail on desktop */}
       <aside className="no-print hidden w-[240px] shrink-0 flex-col border-r border-line bg-surface lg:flex">
@@ -49,5 +51,6 @@ export default async function AppLayout({
 
       <MobileTabBar />
     </div>
+    </ToastProvider>
   );
 }
