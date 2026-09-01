@@ -1,26 +1,99 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* surfaces */
+  --color-canvas: #f6f7f5;
+  --color-surface: #ffffff;
+  --color-sunken: #edefea;
+  --color-line: #dde1da;
+
+  /* ink */
+  --color-ink: #171a17;
+  --color-ink-2: #5c625c;
+  --color-ink-3: #8c938b;
+
+  /* brand — deep pine */
+  --color-pine-900: #0c2e28;
+  --color-pine-700: #12433a;
+  --color-pine-500: #1b6152;
+  --color-pine-100: #dcebe4;
+  --color-pine-50: #f0f7f3;
+
+  /* signal — money attention only, never decoration */
+  --color-ochre: #b57614;
+  --color-ochre-50: #fbf1dc;
+  --color-rust: #a83218;
+  --color-rust-50: #fbe7e1;
+  --color-slate: #4c5563;
+  --color-slate-50: #eaedf1;
+  --color-indigo: #23478f;
+  --color-indigo-50: #e5ebf7;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+
+  /* 1.25 ratio */
+  --text-2xs: 0.75rem;
+  --text-xs: 0.8125rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5625rem;
+  --text-2xl: 1.9375rem;
+  --text-3xl: 2.4375rem;
+  --text-4xl: 3.0625rem;
+
+  --radius-input: 6px;
+  --radius-card: 10px;
+  --radius-modal: 14px;
+
+  /* exactly two shadows in the whole app */
+  --shadow-sm: 0 1px 2px rgb(23 26 23 / 0.06);
+  --shadow-lg: 0 12px 32px rgb(23 26 23 / 0.12);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+  /* money must align */
+  .tnum {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  *:focus-visible {
+    outline: none;
+    --tw-ring-offset-width: 2px;
+    box-shadow:
+      0 0 0 2px var(--color-surface),
+      0 0 0 4px var(--color-pine-500);
+    border-radius: 4px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
