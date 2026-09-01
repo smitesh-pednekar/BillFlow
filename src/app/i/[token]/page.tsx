@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
@@ -137,12 +138,12 @@ export default async function PublicInvoicePage({
         />
 
         <footer className="no-print mt-6 pb-24 text-center sm:pb-6">
-          <a
+          <Link
             href="/"
             className="text-[0.75rem] text-ink-3 transition-colors hover:text-ink-2"
           >
             Sent with BillFlow
-          </a>
+          </Link>
         </footer>
       </div>
 

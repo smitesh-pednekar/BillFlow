@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { invoices, invoiceEvents, payments } from "@/db/schema";
 import { ok, fail } from "@/lib/api";
