@@ -12,6 +12,14 @@ import {
 import { formatMoney } from "@/lib/money";
 import type { MonthPoint } from "@/db/queries/dashboard";
 
+/** Rounds up to a readable 1/2/5 x 10^n step. */
+function niceStep(raw: number): number {
+  const mag = Math.pow(10, Math.floor(Math.log10(Math.max(raw, 1))));
+  const norm = raw / mag;
+  const mult = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10;
+  return mult * mag;
+}
+
 /** "2026-09" -> "Sep" */
 function monthLabel(ym: string): string {
   const [y, m] = ym.split("-").map(Number);
@@ -47,6 +55,13 @@ export function IncomeChart({
     amount: d.cents / 100,
   }));
 
+  // Evenly spaced ticks on a rounded ceiling — Recharts' automatic ticks land
+  // on uneven values like 0, 2k, 3k, 5k, 6k.
+  const peak = Math.max(...points.map((p) => p.amount), 1);
+  const step = niceStep(peak / 4);
+  const yMax = step * 4;
+  const yTicks = [0, step, step * 2, step * 3, yMax];
+
   return (
     <div className="h-[240px] w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -79,6 +94,8 @@ export function IncomeChart({
             axisLine={false}
             width={64}
             tick={{ fill: "#8C938B", fontSize: 12 }}
+            domain={[0, yMax]}
+            ticks={yTicks}
             tickFormatter={(v: number) =>
               v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)
             }

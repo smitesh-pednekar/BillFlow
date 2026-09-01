@@ -131,18 +131,18 @@ export function InvoicePaper({
         <div className="text-right">
           <h1 className="font-display text-xl font-semibold text-ink">Invoice</h1>
           <p className="tnum mt-0.5 text-sm text-ink-2">{invoice.number}</p>
-          {(status === "paid" || status === "overdue" || status === "void") && (
-            <p
-              className={cn(
-                "mt-2 inline-block rounded-full px-2.5 py-1 text-[0.75rem] font-medium",
-                status === "paid" && "bg-pine-100 text-pine-700",
-                status === "overdue" && "bg-rust-50 text-rust",
-                status === "void" && "bg-sunken text-ink-3",
-              )}
-            >
-              {STATUS_LABEL[status]}
-            </p>
-          )}
+          <p
+            className={cn(
+              "mt-2 inline-block rounded-full px-2.5 py-1 text-[0.75rem] font-medium",
+              status === "paid" && "bg-pine-100 text-pine-700",
+              status === "overdue" && "bg-rust-50 text-rust",
+              status === "void" && "bg-sunken text-ink-3",
+              status === "draft" && "bg-slate-50 text-slate",
+              status === "sent" && "bg-indigo-50 text-indigo",
+            )}
+          >
+            {STATUS_LABEL[status]}
+          </p>
         </div>
       </header>
 
