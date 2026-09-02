@@ -158,19 +158,27 @@ its key is missing, so nothing 500s on a fresh clone.
 | `SESSION_SECRET` | **Yes** | `openssl rand -base64 32` — use a **different** value in production | App will not start |
 | `NEXT_PUBLIC_APP_URL` | Recommended | Your deployed URL | Falls back to `http://localhost:3000`, which makes shared links wrong |
 | `RESEND_API_KEY` | No | [Resend](https://resend.com) | Sending still succeeds and returns the shareable link, flagged as not emailed |
-| `EMAIL_FROM` | No | Your verified sender | Defaults to `onboarding@resend.dev` |
+| `EMAIL_FROM` | No | Your verified sender, or Resend's shared one | Defaults to `BillFlow <onboarding@resend.dev>` |
 | `STRIPE_SECRET_KEY` | No | Stripe test-mode keys | The pay button settles the invoice directly, as a simulated payment |
 | `STRIPE_WEBHOOK_SECRET` | No | Stripe dashboard | Webhook returns 501 |
 | `BLOB_READ_WRITE_TOKEN` | No | Vercel Blob | Logos are stored inline as data URLs, capped at 512 KB |
 | `GROQ_API_KEY` | No | [Groq](https://console.groq.com) — free tier | The drafting box returns worked examples and says so in the UI |
 | `GROQ_MODEL` | No | A Groq model id | Defaults to `llama-3.1-8b-instant` |
 
-**A note on email.** Resend only sends from `onboarding@resend.dev` until a
-custom domain is verified, and free accounts are capped at 100 emails a day. The
-brief allows "email the client **or** generate a shareable link", so the link is
-the primary path here: **Copy link** always works, and a failed email never
-breaks the send — the invoice is still marked sent and the link is still
-returned.
+**A note on email.** Until a custom domain is verified, Resend sends only from
+its shared `onboarding@resend.dev` sender, and that sender will **only deliver to
+the address the Resend account is registered to** — any other recipient comes
+back as a 403. Free accounts are also capped at 100 emails a day.
+
+The brief allows "email the client **or** generate a shareable link", so the link
+is the primary path here and email is the bonus:
+
+- **Copy link** always works, with or without email configured.
+- A failed email never breaks the send. The invoice is still marked sent, the
+  link is still returned, and the failure — including the provider's reason — is
+  recorded on the invoice timeline rather than swallowed.
+- Verified end to end: a send to the account address returns `emailed: true`, a
+  send to any other address degrades gracefully with the invoice still sent.
 
 ---
 
