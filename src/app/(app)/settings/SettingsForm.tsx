@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input, Textarea, Select, Field } from "@/components/ui";
 import { useToast } from "@/components/ui/Toast";
+import { LogoUpload } from "@/components/ui/LogoUpload";
 import { settingsSchema, type SettingsInput } from "@/lib/validators";
 import type { z } from "zod";
 import { formatInvoiceNumber } from "@/lib/invoice";
@@ -38,6 +39,7 @@ export function SettingsForm({
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema) as never,
@@ -88,13 +90,29 @@ export function SettingsForm({
                 <Textarea id="s-address" rows={3} {...register("businessAddress")} />
               </Field>
               <Field
-                label="Logo URL"
+                label="Logo"
                 htmlFor="s-logo"
                 error={errors.logoUrl?.message}
-                hint="Paste a link to your logo. It appears on invoices and the public page."
+                hint="Appears on every invoice, the PDF, and the page your client opens."
                 className="sm:col-span-2"
               >
-                <Input id="s-logo" placeholder="https://…" {...register("logoUrl")} invalid={!!errors.logoUrl} />
+                <div className="space-y-2">
+                  <LogoUpload
+                    value={values.logoUrl ?? ""}
+                    onChange={(url) =>
+                      setValue("logoUrl", url, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })
+                    }
+                  />
+                  <Input
+                    id="s-logo"
+                    placeholder="…or paste an image URL"
+                    {...register("logoUrl")}
+                    invalid={!!errors.logoUrl}
+                  />
+                </div>
               </Field>
             </div>
           </section>
