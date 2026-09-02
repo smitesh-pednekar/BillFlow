@@ -10,6 +10,7 @@ import { InvoicePaper } from "@/components/invoice/InvoicePaper";
 import { StatusBadge } from "@/components/invoice/StatusBadge";
 import { InvoiceActions } from "./InvoiceActions";
 import { formatMoney } from "@/lib/money";
+import { appUrl } from "@/lib/appUrl";
 
 export const dynamic = "force-dynamic";
 
@@ -49,8 +50,8 @@ export default async function InvoiceDetailPage({
     dueDate: invoice.dueDate,
   });
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const publicUrl = `${appUrl}/i/${invoice.publicToken}`;
+  const base = appUrl();
+  const publicUrl = `${base}/i/${invoice.publicToken}`;
 
   const paper = toPaperInvoice(invoice, user);
   const { billTo } = paper;

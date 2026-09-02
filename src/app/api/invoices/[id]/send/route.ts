@@ -6,6 +6,7 @@ import { getCurrentUser, requireUserId } from "@/lib/auth";
 import { findInvoice } from "@/db/queries/invoices";
 import { sendInvoiceEmail } from "@/lib/email";
 import { ok, fail, handleError } from "@/lib/api";
+import { appUrl } from "@/lib/appUrl";
 
 export const runtime = "nodejs";
 
@@ -50,8 +51,8 @@ export async function POST(
       logoUrl: user.logoUrl,
     };
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-    const link = `${appUrl}/i/${invoice.publicToken}`;
+    const base = appUrl();
+    const link = `${base}/i/${invoice.publicToken}`;
 
     await db
       .update(invoices)

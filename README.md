@@ -157,7 +157,7 @@ its key is missing, so nothing 500s on a fresh clone.
 |---|---|---|---|
 | `DATABASE_URL` | **Yes** | [Neon](https://neon.tech) free tier, or local Postgres | App will not start |
 | `SESSION_SECRET` | **Yes** | `openssl rand -base64 32` — use a **different** value in production | App will not start |
-| `NEXT_PUBLIC_APP_URL` | Recommended | Your deployed URL | Falls back to `http://localhost:3000`, which makes shared links wrong |
+| `NEXT_PUBLIC_APP_URL` | Recommended | Your deployed URL | On Vercel, falls back to the deployment domain; elsewhere to `http://localhost:3000`, which would make shared links wrong |
 | `RESEND_API_KEY` | No | [Resend](https://resend.com) | Sending still succeeds and returns the shareable link, flagged as not emailed |
 | `EMAIL_FROM` | No | Your verified sender, or Resend's shared one | Defaults to `BillFlow <onboarding@resend.dev>` |
 | `STRIPE_SECRET_KEY` | No | Stripe test-mode keys | The pay button settles the invoice directly, as a simulated payment |
@@ -180,6 +180,28 @@ is the primary path here and email is the bonus:
   recorded on the invoice timeline rather than swallowed.
 - Verified end to end: a send to the account address returns `emailed: true`, a
   send to any other address degrades gracefully with the invoice still sent.
+
+---
+
+## Deploying
+
+The app runs on any Node host with a Postgres database. On Vercel:
+
+1. Import the repository. Leave the build command alone — `vercel-build` is
+   picked up automatically and applies migrations before building, so the
+   schema is never out of step with the deployed code.
+2. Set `DATABASE_URL` and a **freshly generated** `SESSION_SECRET` (do not
+   reuse the local one). Add `RESEND_API_KEY`, `EMAIL_FROM` and `GROQ_API_KEY`
+   if you want email and AI drafting live; everything else is optional and
+   degrades as described above.
+3. After the first deploy, set `NEXT_PUBLIC_APP_URL` to the real domain. It is
+   read at runtime on the server, so it is not baked into the client bundle.
+4. Run `pnpm db:seed` once against the deployed database if you want the demo
+   business.
+
+Put the serverless functions in a region near the database — every page reads
+from Postgres on each request, so the round trip between them is what governs
+page latency.
 
 ---
 

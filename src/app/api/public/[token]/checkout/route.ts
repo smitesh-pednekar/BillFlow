@@ -5,6 +5,7 @@ import { invoices, invoiceEvents, payments } from "@/db/schema";
 import { findInvoiceByToken } from "@/db/queries/invoices";
 import { displayStatus } from "@/lib/invoice";
 import { ok, fail, handleError } from "@/lib/api";
+import { appUrl } from "@/lib/appUrl";
 
 export const runtime = "nodejs";
 
@@ -32,7 +33,7 @@ export async function POST(
       return fail("This invoice has nothing to pay.", 422);
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const base = appUrl();
     const secret = process.env.STRIPE_SECRET_KEY;
 
     // No usable Stripe key: settle in test mode so the flow is still
@@ -78,8 +79,8 @@ export async function POST(
       "line_items[0][price_data][currency]": invoice.currency.toLowerCase(),
       "line_items[0][price_data][unit_amount]": String(invoice.totalCents),
       "line_items[0][price_data][product_data][name]": `Invoice ${invoice.number}`,
-      success_url: `${appUrl}/i/${token}?paid=1`,
-      cancel_url: `${appUrl}/i/${token}`,
+      success_url: `${base}/i/${token}?paid=1`,
+      cancel_url: `${base}/i/${token}`,
       client_reference_id: invoice.id,
       "metadata[invoiceId]": invoice.id,
     });
