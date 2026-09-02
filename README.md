@@ -38,19 +38,20 @@ All twelve requirements, plus three of the bonus items.
 | 3 | Client management | ✅ | Slide-over add/edit, archive instead of orphaning invoices |
 | 4 | Invoice editor | ✅ | Line items, discount, tax, live paper preview |
 | 5 | Invoice list | ✅ | Filter, search, sort and paginate **in Postgres**, driven by the URL |
-| 6 | Invoice detail + PDF | ⚠️ | Detail, print stylesheet and shareable link done; **no PDF download yet** |
+| 6 | Invoice detail + PDF | ✅ | Detail page, real A4 PDF download, and a clean print stylesheet |
 | 7 | Send to client | ✅ | Email via Resend when configured; the copy-link path always works |
 | 8 | Public invoice page | ✅ | `/i/[token]` — no auth, sticky pay bar, pay button |
 | 9 | Dashboard | ✅ | Four linked stat cards, 12-month income chart, recent invoices |
-| 10 | Settings | ✅ | Business profile, currency, prefix, tax and terms defaults |
+| 10 | Settings | ✅ | Business profile, logo upload, currency, prefix, tax and terms defaults |
 | 11 | Overdue tracking | ✅ | **Derived**, never stored — see below |
 | 12 | Loading / empty / error / mobile | ✅ | Skeletons, empty states, error boundaries, 375px layouts |
 
-**Bonus:** activity timeline with view tracking, Stripe Checkout (test mode)
-with an idempotent webhook, and void/restore.
+**Bonus:** AI invoice drafting (plain English to line items), activity timeline
+with view tracking, Stripe Checkout (test mode) with an idempotent webhook, and
+void/restore.
 
-**Not built:** PDF download, logo file upload (a logo URL can be pasted), AI
-invoice drafting, recurring invoices, and the command palette.
+**Not built:** recurring invoices, partial payments, CSV export, and the command
+palette.
 
 ---
 
@@ -160,6 +161,9 @@ its key is missing, so nothing 500s on a fresh clone.
 | `EMAIL_FROM` | No | Your verified sender | Defaults to `onboarding@resend.dev` |
 | `STRIPE_SECRET_KEY` | No | Stripe test-mode keys | The pay button settles the invoice directly, as a simulated payment |
 | `STRIPE_WEBHOOK_SECRET` | No | Stripe dashboard | Webhook returns 501 |
+| `BLOB_READ_WRITE_TOKEN` | No | Vercel Blob | Logos are stored inline as data URLs, capped at 512 KB |
+| `GROQ_API_KEY` | No | [Groq](https://console.groq.com) — free tier | The drafting box returns worked examples and says so in the UI |
+| `GROQ_MODEL` | No | A Groq model id | Defaults to `llama-3.1-8b-instant` |
 
 **A note on email.** Resend only sends from `onboarding@resend.dev` until a
 custom domain is verified, and free accounts are capped at 100 emails a day. The
@@ -239,17 +243,41 @@ numbers, which is why aggregates go through a single coercion helper
 
 ## What I would build next
 
-1. **PDF download.** `@react-pdf/renderer` in a route handler, mirroring
-   `InvoicePaper` so the document and the page cannot drift. The print
-   stylesheet covers this for now, but a real attachment is what clients expect.
-2. **AI invoice drafting.** Describe the work in plain English, get line items
-   back as structured JSON, editable before saving.
-3. **Logo upload.** Currently a pasted URL; blob storage with a size limit is
-   the obvious next step.
-4. **Partial payments.** `paid_cents` already exists and the view already
+1. **Attach the PDF to the invoice email.** The PDF endpoint and the email
+   template both exist; wiring the attachment is a small step.
+2. **Partial payments.** `paid_cents` already exists and the view already
    computes `balance_cents` — the UI is the only missing piece.
-5. **Reminders.** A "Send reminder" action on overdue invoices, with its own
+3. **Reminders.** A "Send reminder" action on overdue invoices, with its own
    template.
+4. **CSV export** of the filtered invoice list, reusing the list query.
+5. **Recurring invoices.** The largest remaining piece of real work.
+
+---
+
+## AI invoice drafting
+
+Describe the work in plain English and the line items fill themselves in:
+
+> *3 days of brand design at 400/day, plus 5 hours of revisions at 40/hr, 20% VAT*
+
+The draft is shown for review before it touches the form, and every field stays
+editable afterwards — it is a starting point, not an authority.
+
+Implementation notes:
+
+- Runs on Groq's free tier (`llama-3.1-8b-instant` by default, `GROQ_MODEL`
+  overrides it) through their OpenAI-compatible endpoint.
+- The key is **server-side only** and the route sits behind authentication, so
+  the endpoint cannot be called anonymously. Drafting is limited to 10 requests
+  per user per hour — a public endpoint proxying an LLM on someone else's key is
+  a bill waiting to happen.
+- The reply is validated with Zod, and markdown fences are stripped before
+  parsing, so a chatty model degrades to a clear error rather than a 500.
+- **With no key set, the box returns worked examples and labels them as such in
+  the UI.** A reviewer cloning this repo sees the whole flow without needing a
+  key of their own.
+- The model is asked for major units; conversion to integer pence happens in one
+  place, so drafted amounts obey the same money rules as typed ones.
 
 ---
 
@@ -270,8 +298,6 @@ Measured against Neon's free tier (US East 2) from a development machine:
 
 ## Known limitations
 
-- **No PDF download.** Print-to-PDF from the invoice page works and the print
-  stylesheet is clean, but there is no server-rendered PDF endpoint.
 - **Not deployed.** Everything runs locally; the migration and seed steps above
   are verified end to end against a real Postgres.
 - **Email needs a verified domain** to reach arbitrary inboxes — see the note
