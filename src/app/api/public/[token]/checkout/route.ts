@@ -35,9 +35,15 @@ export async function POST(
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
     const secret = process.env.STRIPE_SECRET_KEY;
 
-    // No Stripe key: settle in test mode so the flow is still demonstrable.
-    // The brief allows a simulated payment.
-    if (!secret || !secret.startsWith("sk_")) {
+    // No usable Stripe key: settle in test mode so the flow is still
+    // demonstrable. The brief allows a simulated payment.
+    // The length check matters because a bare `sk_test_` placeholder copied
+    // from .env.example would otherwise pass a prefix-only test and break
+    // checkout rather than falling back.
+    const usableStripeKey =
+      !!secret && /^sk_(test|live)_.+/.test(secret) && secret.length > 20;
+
+    if (!usableStripeKey) {
       await db
         .update(invoices)
         .set({
