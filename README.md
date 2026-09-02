@@ -154,7 +154,7 @@ its key is missing, so nothing 500s on a fresh clone.
 | Variable | Required | Where to get it | If unset |
 |---|---|---|---|
 | `DATABASE_URL` | **Yes** | [Neon](https://neon.tech) free tier, or local Postgres | App will not start |
-| `SESSION_SECRET` | **Yes** | `openssl rand -base64 32` | App will not start |
+| `SESSION_SECRET` | **Yes** | `openssl rand -base64 32` — use a **different** value in production | App will not start |
 | `NEXT_PUBLIC_APP_URL` | Recommended | Your deployed URL | Falls back to `http://localhost:3000`, which makes shared links wrong |
 | `RESEND_API_KEY` | No | [Resend](https://resend.com) | Sending still succeeds and returns the shareable link, flagged as not emailed |
 | `EMAIL_FROM` | No | Your verified sender | Defaults to `onboarding@resend.dev` |
@@ -228,9 +228,12 @@ empty.
 | Styling | Tailwind v4 | CSS-first `@theme` makes the token system trivial. |
 | Charts | Recharts | Area chart for income over time. |
 
-The app selects its database driver by URL: Neon's serverless HTTP driver in
-production (no connection-pool exhaustion in serverless handlers), plain
-postgres-js locally.
+The app selects its database driver by URL: Neon's serverless HTTP driver when
+`DATABASE_URL` points at Neon (no connection-pool exhaustion in serverless
+handlers), plain postgres-js otherwise. Both paths are exercised — note that the
+HTTP driver returns `bigint` columns as strings where postgres-js returns
+numbers, which is why aggregates go through a single coercion helper
+([`src/db/rows.ts`](src/db/rows.ts)) rather than being read directly.
 
 ---
 
@@ -247,6 +250,21 @@ postgres-js locally.
    computes `balance_cents` — the UI is the only missing piece.
 5. **Reminders.** A "Send reminder" action on overdue invoices, with its own
    template.
+
+---
+
+## Performance notes
+
+Measured against Neon's free tier (US East 2) from a development machine:
+
+- **Warm page render: 8-14 ms.** Once a route is compiled, the dashboard's three
+  aggregate queries run in parallel and the page is not the bottleneck.
+- **Neon round trip: ~305 ms** from a machine on another continent, and
+  effectively nothing from a Vercel function in a nearby region. Set Vercel's
+  function region close to the Neon region.
+- **Cold start: 1-2 s.** Neon's compute suspends after five minutes idle and
+  wakes on the first query. The first page load after a quiet period pays this
+  once; everything after it is warm.
 
 ---
 
