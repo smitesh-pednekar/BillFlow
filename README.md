@@ -144,6 +144,7 @@ DROP SCHEMA IF EXISTS drizzle CASCADE;
 | `pnpm db:seed` | Seeds the demo business (`--reset` to wipe first) |
 | `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm lint` | ESLint |
+| `pnpm vercel-build` | Migrations then build. Vercel runs this automatically, so the schema is applied on every deploy without configuring a custom build command. |
 
 ---
 
