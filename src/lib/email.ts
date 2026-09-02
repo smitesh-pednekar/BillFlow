@@ -1,6 +1,8 @@
 import "server-only";
 import { formatMoney } from "./money";
 
+const DEFAULT_FROM = "BillFlow <onboarding@resend.dev>";
+
 export interface SendInvoiceArgs {
   to: string;
   subject?: string;
@@ -32,7 +34,23 @@ export async function sendInvoiceEmail(
     return { sent: false, error: "Email is not configured on this deployment." };
   }
 
-  const from = process.env.EMAIL_FROM ?? "BillFlow <onboarding@resend.dev>";
+  /**
+   * Resend requires `address@domain` or `Name <address@domain>`; a bare display
+   * name is rejected at send time with a 422. Catch that here so the cause is
+   * obvious rather than buried in a provider error on the timeline.
+   */
+  const configured = process.env.EMAIL_FROM?.trim();
+  const from =
+    configured && /^[^<>]*<[^@<>\s]+@[^@<>\s]+>$|^[^@<>\s]+@[^@<>\s]+$/.test(configured)
+      ? configured
+      : DEFAULT_FROM;
+
+  if (configured && from !== configured) {
+    console.warn(
+      `[email] EMAIL_FROM=${JSON.stringify(configured)} is not a valid sender. ` +
+        `Use "Name <address@domain>". Falling back to ${DEFAULT_FROM}.`,
+    );
+  }
   const amount = formatMoney(args.totalCents, args.currency);
   const subject =
     args.subject?.trim() ||
