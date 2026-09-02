@@ -11,6 +11,7 @@ import {
   Ban,
   Printer,
   RotateCcw,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui";
 import { ConfirmDialog } from "@/components/ui/Sheet";
@@ -111,6 +112,14 @@ export function InvoiceActions({
           <Pencil className="size-4" aria-hidden="true" />
           Edit
         </Link>
+
+        <a
+          href={`/api/invoices/${id}/pdf`}
+          className="inline-flex h-11 items-center gap-2 rounded-[6px] border border-line bg-surface px-4 text-sm font-medium text-ink transition-colors hover:bg-sunken"
+        >
+          <Download className="size-4" aria-hidden="true" />
+          Download PDF
+        </a>
 
         <Button variant="ghost" onClick={() => window.print()}>
           <Printer className="size-4" aria-hidden="true" />

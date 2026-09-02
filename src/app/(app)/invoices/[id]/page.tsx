@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
-import { findInvoice, sortItems } from "@/db/queries/invoices";
+import { findInvoice } from "@/db/queries/invoices";
+import { toPaperInvoice } from "@/lib/toPaper";
 import { displayStatus } from "@/lib/invoice";
 import { InvoicePaper } from "@/components/invoice/InvoicePaper";
 import { StatusBadge } from "@/components/invoice/StatusBadge";
@@ -51,21 +52,8 @@ export default async function InvoiceDetailPage({
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const publicUrl = `${appUrl}/i/${invoice.publicToken}`;
 
-  // Snapshots win when they exist: what the client received is the record.
-  const billTo = invoice.billTo ?? {
-    name: invoice.client.name,
-    email: invoice.client.email,
-    company: invoice.client.company,
-    address: invoice.client.address,
-    phone: invoice.client.phone,
-  };
-  const billFrom = invoice.billFrom ?? {
-    name: user.businessName || user.name,
-    email: user.businessEmail || user.email,
-    address: user.businessAddress,
-    phone: user.businessPhone,
-    logoUrl: user.logoUrl,
-  };
+  const paper = toPaperInvoice(invoice, user);
+  const { billTo } = paper;
 
   const events = [...invoice.events].sort(
     (a, b) => +new Date(a.createdAt) - +new Date(b.createdAt),
@@ -102,33 +90,7 @@ export default async function InvoiceDetailPage({
       </header>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_260px]">
-        <InvoicePaper
-          invoice={{
-            number: invoice.number,
-            issueDate: invoice.issueDate,
-            dueDate: invoice.dueDate,
-            currency: invoice.currency,
-            status,
-            items: sortItems(invoice.items).map((i) => ({
-              description: i.description,
-              quantity: Number(i.quantity),
-              unitCents: i.unitCents,
-              amountCents: i.amountCents,
-            })),
-            subtotalCents: invoice.subtotalCents,
-            discountCents: invoice.discountCents,
-            discountKind: invoice.discountKind,
-            discountValue: invoice.discountValue,
-            taxBps: invoice.taxBps,
-            taxCents: invoice.taxCents,
-            totalCents: invoice.totalCents,
-            notes: invoice.notes,
-            terms: invoice.terms,
-            footer: user.invoiceFooter,
-            billTo,
-            billFrom,
-          }}
-        />
+        <InvoicePaper invoice={paper} />
 
         {/* Activity rail — the feature freelancers actually want. */}
         <aside className="no-print hidden xl:block">

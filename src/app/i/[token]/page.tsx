@@ -4,7 +4,8 @@ import type { Metadata } from "next";
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { invoices, invoiceEvents } from "@/db/schema";
-import { findInvoiceByToken, sortItems } from "@/db/queries/invoices";
+import { findInvoiceByToken } from "@/db/queries/invoices";
+import { toPaperInvoice } from "@/lib/toPaper";
 import { displayStatus } from "@/lib/invoice";
 import { formatMoney } from "@/lib/money";
 import { InvoicePaper } from "@/components/invoice/InvoicePaper";
@@ -53,20 +54,8 @@ export default async function PublicInvoicePage({
       .values({ invoiceId: invoice.id, kind: "viewed" });
   }
 
-  const billTo = invoice.billTo ?? {
-    name: invoice.client.name,
-    email: invoice.client.email,
-    company: invoice.client.company,
-    address: invoice.client.address,
-    phone: invoice.client.phone,
-  };
-  const billFrom = invoice.billFrom ?? {
-    name: invoice.user.businessName || invoice.user.name,
-    email: invoice.user.businessEmail || invoice.user.email,
-    address: invoice.user.businessAddress,
-    phone: invoice.user.businessPhone,
-    logoUrl: invoice.user.logoUrl,
-  };
+  const paper = toPaperInvoice(invoice, invoice.user);
+  const { billFrom } = paper;
 
   const isPaid = status === "paid";
   const justPaid = sp.paid === "1";
@@ -109,33 +98,7 @@ export default async function PublicInvoicePage({
           )}
         </header>
 
-        <InvoicePaper
-          invoice={{
-            number: invoice.number,
-            issueDate: invoice.issueDate,
-            dueDate: invoice.dueDate,
-            currency: invoice.currency,
-            status,
-            items: sortItems(invoice.items).map((i) => ({
-              description: i.description,
-              quantity: Number(i.quantity),
-              unitCents: i.unitCents,
-              amountCents: i.amountCents,
-            })),
-            subtotalCents: invoice.subtotalCents,
-            discountCents: invoice.discountCents,
-            discountKind: invoice.discountKind,
-            discountValue: invoice.discountValue,
-            taxBps: invoice.taxBps,
-            taxCents: invoice.taxCents,
-            totalCents: invoice.totalCents,
-            notes: invoice.notes,
-            terms: invoice.terms,
-            footer: invoice.user.invoiceFooter,
-            billTo,
-            billFrom,
-          }}
-        />
+        <InvoicePaper invoice={paper} />
 
         <footer className="no-print mt-6 pb-24 text-center sm:pb-6">
           <Link
