@@ -164,7 +164,7 @@ its key is missing, so nothing 500s on a fresh clone.
 | `STRIPE_WEBHOOK_SECRET` | No | Stripe dashboard | Webhook returns 501 |
 | `BLOB_READ_WRITE_TOKEN` | No | Vercel Blob | Logos are stored inline as data URLs, capped at 512 KB |
 | `GROQ_API_KEY` | No | [Groq](https://console.groq.com) — free tier | The drafting box returns worked examples and says so in the UI |
-| `GROQ_MODEL` | No | A Groq model id | Defaults to `llama-3.1-8b-instant` |
+| `GROQ_MODEL` | No | A current Groq model id | Defaults to `openai/gpt-oss-20b` |
 
 **A note on email.** Until a custom domain is verified, Resend sends only from
 its shared `onboarding@resend.dev` sender, and that sender will **only deliver to
@@ -274,8 +274,10 @@ editable afterwards — it is a starting point, not an authority.
 
 Implementation notes:
 
-- Runs on Groq's free tier (`llama-3.1-8b-instant` by default, `GROQ_MODEL`
-  overrides it) through their OpenAI-compatible endpoint.
+- Runs on Groq's free tier (`openai/gpt-oss-20b` by default, `GROQ_MODEL`
+  overrides it) through their OpenAI-compatible endpoint. Groq retires models
+  periodically, so a 404 from them reports itself as a configuration problem
+  rather than as a failed draft.
 - The key is **server-side only** and the route sits behind authentication, so
   the endpoint cannot be called anonymously. Drafting is limited to 10 requests
   per user per hour — a public endpoint proxying an LLM on someone else's key is

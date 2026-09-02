@@ -3,7 +3,7 @@ import { z } from "zod";
 import { parseMoneyToCents, round } from "./money";
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const DEFAULT_MODEL = "llama-3.1-8b-instant";
+const DEFAULT_MODEL = "openai/gpt-oss-20b";
 
 /**
  * What the model is asked to return. Kept deliberately small: descriptions,
@@ -150,9 +150,19 @@ export async function draftInvoice(prompt: string): Promise<DraftResult> {
 
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
-    console.error("[draft]", res.status, detail.slice(0, 300));
+    console.error("[draft]", res.status, model, detail.slice(0, 300));
     if (res.status === 429) {
       throw new DraftError("The drafting service is busy. Try again in a moment.");
+    }
+    // A retired or misspelled model id is a configuration problem, not
+    // something the user can fix by rewording their description.
+    if (res.status === 404) {
+      throw new DraftError(
+        `The drafting model "${model}" is not available. Set GROQ_MODEL to a current one.`,
+      );
+    }
+    if (res.status === 401) {
+      throw new DraftError("The drafting service rejected the API key.");
     }
     throw new DraftError("Could not draft those line items. Try rewording it.");
   }
