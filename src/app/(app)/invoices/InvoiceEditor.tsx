@@ -8,6 +8,7 @@ import { Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import { Button, Input, Textarea, Select, Field } from "@/components/ui";
 import { useToast } from "@/components/ui/Toast";
 import { InvoicePaper } from "@/components/invoice/InvoicePaper";
+import { DraftWithAI, type DraftedItem } from "./DraftWithAI";
 import { computeTotals, formatMoney, parseMoneyToCents, centsToDecimal } from "@/lib/money";
 import { addDaysISO, todayISO, displayStatus, type InvoiceStatus } from "@/lib/invoice";
 import type { DisplayStatus } from "@/lib/invoice";
@@ -112,7 +113,7 @@ export function InvoiceEditor({
           },
     });
 
-  const { fields, append, remove, swap } = useFieldArray({
+  const { fields, append, remove, swap, replace } = useFieldArray({
     control,
     name: "items",
   });
@@ -153,6 +154,23 @@ export function InvoiceEditor({
   const paperStatus: DisplayStatus = invoice
     ? displayStatus({ status: invoice.status, dueDate: values.dueDate })
     : "draft";
+
+  /** A draft replaces the line items wholesale; everything stays editable. */
+  function applyDraft(draft: {
+    items: DraftedItem[];
+    taxBps: number;
+    notes: string | null;
+  }) {
+    replace(
+      draft.items.map((i) => ({
+        description: i.description,
+        quantity: String(i.quantity),
+        rate: centsToDecimal(i.unitCents),
+      })),
+    );
+    if (draft.taxBps > 0) setValue("taxInput", String(draft.taxBps / 100));
+    if (draft.notes) setValue("notes", draft.notes);
+  }
 
   function payload() {
     return {
@@ -332,6 +350,8 @@ export function InvoiceEditor({
             </div>
           </section>
 
+          <DraftWithAI currency={defaults.currency} onApply={applyDraft} />
+
           <section className="rounded-[10px] border border-line bg-surface p-5">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-medium text-ink">Line items</h2>
@@ -505,7 +525,8 @@ export function InvoiceEditor({
             </p>
             <InvoicePaper
               invoice={{
-                number: invoice?.number ?? "Draft",
+                // The number is allocated on save; the chip already says Draft.
+                number: invoice?.number ?? "—",
                 issueDate: values.issueDate,
                 dueDate: values.dueDate,
                 currency: defaults.currency,

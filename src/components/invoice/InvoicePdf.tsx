@@ -175,7 +175,11 @@ export function InvoicePdf({ invoice }: { invoice: PaperInvoice }) {
       <Page size="A4" style={s.page}>
         <View style={s.header}>
           <View style={{ flex: 1, paddingRight: 20 }}>
-            {billFrom.logoUrl ? <Image style={s.logo} src={billFrom.logoUrl} /> : null}
+            {billFrom.logoUrl ? (
+              // react-pdf's Image, not an HTML img: a PDF has no alt attribute.
+              // eslint-disable-next-line jsx-a11y/alt-text
+              <Image style={s.logo} src={billFrom.logoUrl} />
+            ) : null}
             <Text style={s.fromName}>{billFrom.name}</Text>
             {billFrom.address ? (
               <Text style={s.muted}>{billFrom.address}</Text>
