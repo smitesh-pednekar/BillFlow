@@ -42,3 +42,6 @@ next-env.d.ts
 
 # local QA artefacts
 /shots
+
+# local QA scripts
+/*.mjs
