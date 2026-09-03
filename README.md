@@ -181,6 +181,11 @@ is the primary path here and email is the bonus:
 - Verified end to end: a send to the account address returns `emailed: true`, a
   send to any other address degrades gracefully with the invoice still sent.
 
+**Demoing email.** Send the invoice to the address the Resend account is
+registered to. Any other recipient returns a 403 from the shared sender, the
+invoice is still marked sent, and the toast says the email did not go through
+rather than claiming success.
+
 ---
 
 ## Deploying

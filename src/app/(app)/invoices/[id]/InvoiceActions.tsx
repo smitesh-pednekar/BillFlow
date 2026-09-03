@@ -60,10 +60,25 @@ export function InvoiceActions({
   async function send() {
     const data = await post(`/api/invoices/${id}/send`, {}, "send");
     if (!data) return;
-    if (data.emailed) toast(`Invoice sent to ${data.to}`);
-    else if (clientEmail)
+
+    if (data.emailed) {
+      toast(`Invoice sent to ${data.to}`);
+      return;
+    }
+
+    // The invoice is sent either way; only the email leg failed. Say which
+    // reason applies rather than always blaming configuration -- a provider
+    // that rejected the recipient is a different problem to a missing key.
+    if (!data.to) {
+      toast("Marked as sent. This client has no email, so copy the link.");
+    } else if (/not configured/i.test(data.emailError ?? "")) {
       toast("Marked as sent. Email is not configured, so share the link.");
-    else toast("Marked as sent. Copy the link to share it.");
+    } else {
+      toast(
+        `Marked as sent, but the email to ${data.to} did not go through. Share the link instead.`,
+        "error",
+      );
+    }
   }
 
   async function copyLink() {
