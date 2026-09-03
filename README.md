@@ -10,20 +10,29 @@ Built as a full-stack assessment project.
 
 ## Live demo
 
-> **Deployment is not wired up yet.** The app runs locally against Postgres via
-> the steps below. Once it is deployed, this section should carry the URL, the
-> demo login, and a direct public invoice link.
+**[https://billflow-flax.vercel.app](https://billflow-flax.vercel.app)**
 
-**Demo account** (created by the seed script, and pre-filled on the sign-in
-page so you never have to come back here):
+**Demo account** — already filled in on the sign-in page, so you never have to
+come back here:
 
 ```
 demo@billflow.app
 demo1234
 ```
 
-The seed script prints a **public invoice link** when it finishes — open it in a
-private window to see what a client sees, with no account.
+**[See a public invoice](https://billflow-flax.vercel.app/i/nQTS99gTLjr4K8SM9r10-VPxFaXlgJN_)** — open it in a private window to see
+exactly what a client sees, with no account and no sign-in. The Pay button
+settles the invoice, since Stripe is not configured on this deployment (the
+brief allows a simulated payment).
+
+Things worth trying:
+
+- The **Overdue** filter on the invoice list. Those two invoices are stored as
+  `sent`; nothing ever wrote "overdue" — it is derived from the due date.
+- **Describe the work** on a new invoice: *"Built a Shopify store: 30 hours dev
+  at 85/hr, theme customisation 1200 flat, and 3 months support at 400/month.
+  20% VAT"*.
+- **Download PDF** on any invoice.
 
 ---
 
