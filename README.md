@@ -20,7 +20,7 @@ demo@billflow.app
 demo1234
 ```
 
-**[See a public invoice](https://billflow-flax.vercel.app/i/nQTS99gTLjr4K8SM9r10-VPxFaXlgJN_)** — open it in a private window to see
+**[See a public invoice](https://billflow-flax.vercel.app/i/ldizLdArlFj-zzacC_LpLgEKT_4EsqUq)** — open it in a private window to see
 exactly what a client sees, with no account and no sign-in. The Pay button
 settles the invoice, since Stripe is not configured on this deployment (the
 brief allows a simulated payment).
