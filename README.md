@@ -4,8 +4,6 @@ Invoicing for people who work alone. Add a client, build an invoice with live
 totals, send a link, and get paid — with overdue tracking that looks after
 itself.
 
-Built as a full-stack assessment project.
-
 ---
 
 ## Live demo
